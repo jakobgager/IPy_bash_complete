@@ -80,11 +80,17 @@ _ipython()
 
   case "$cmd" in
    nbconvert|notebook)
-     local options="$(_getOps $cmd)"
-     _filedir ipynb
-     COMPREPLY=( ${COMPREPLY[@]} $( compgen -W "${options} --help --help-all" -- $cur ) )
-     #COMPREPLY=( ${COMPREPLY[@]} $( compgen -f -o filenames -X '.[^./]*' -- $cur | grep *.ipynb) )
-     return 0
+     case "$cur" in
+     -*)
+       local options="$(_getOps $cmd)"
+       COMPREPLY=( $( compgen -W "${options} --help --help-all" -- $cur ) )
+       return 0
+       ;;
+     *)
+       _filedir ipynb
+       return 0
+       ;;
+     esac
      ;;
    profile)
      local options="$(_getOps $cmd)"
