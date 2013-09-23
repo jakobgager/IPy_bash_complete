@@ -16,7 +16,7 @@ If desired the parsed options can be extended by replacing `--help` with `--help
 
 Current limitations:
 * no logic is implemented to validate combinations
-* folder copletion is buggy (spaces in filenames)
+* folder completion does not strip dotdirs
 * option choices are not parsed but hardcoded
 
 Install
@@ -25,6 +25,6 @@ Install
 2. source the script / add the following line to your .bashrc/.zshrc:   
 
 ```bash
-source ~/.config/ipython/ipython-completion.bash
+source ~/.config/ipython/IPy_bash_complete/ipython-completion.bash
 ```   
    
