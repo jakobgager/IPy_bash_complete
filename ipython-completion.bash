@@ -7,6 +7,39 @@ _getOps ()
   opts=$((ipython $cmd --help ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
 }
 
+_getPylabModes ()
+{
+if [ -z "$__ipython_complete_pylab" ]; then
+    __ipython_complete_pylab=`cat <<EOF | python -
+try:
+    import IPython.core.shellapp as mod;
+    for k in mod.InteractiveShellApp.pylab.values:
+        print "%s " % k
+except:
+    pass
+EOF
+        `  
+fi
+}
+
+_getIPyProfiles ()
+{
+if [ -z  "$__ipython_complete_profiles" ]; then
+        __ipython_complete_profiles=`cat <<EOF | python -
+try:
+    import IPython.core.profileapp
+    for k in IPython.core.profileapp.list_bundled_profiles():
+        print "%s " % k
+    p = IPython.core.profileapp.ProfileList()
+    for k in IPython.core.profileapp.list_profiles_in(p.ipython_dir):
+        print "%s " % k
+except:
+    pass
+EOF
+        `
+fi    
+}
+
 _cleanCur ()
 {
   if [ "$cur" == "=" ] 
@@ -25,18 +58,19 @@ _ipython()
       prev="${COMP_WORDS[COMP_CWORD-2]}"
   fi
   
-  local subcmds="locate profile console kernel \
-           notebook nbconvert qtconsole history"
+  local subcmds="locate ,profile ,console ,kernel ,notebook ,nbconvert ,qtconsole ,history "
 
-  local subcmds_prof=$(echo " create list "|sed -e "s/ /\n/")
+  local subcmds_prof="create ,list "
   local subcmds_loc="profile"
   local subcmds_hist="trim"
-  local mpl_backend="auto gtk inline osx qt qt4 tk wx"
+  local mpl_backend="auto ,gtk ,inline ,osx ,qt ,qt4 ,tk ,wx "
 
   case "$prev" in
    --to)
      _cleanCur
-     COMPREPLY=( $( compgen -W "latex html slides rst markdown python" -- $cur ) )
+     local IFS=$',\t\n'
+     COMPREPLY=( $( compgen -W "latex ,html ,slides ,rst ,markdown ,python " -- $cur ) )
+     unset IFS
      return 0
      ;;
    --post)
@@ -54,20 +88,23 @@ _ipython()
      ;;
    --matplotlib | --pylab)
      _cleanCur
+     local IFS=$',\t\n'
      COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
+     unset IFS
      return 0
      ;;
    --template)
      _cleanCur
      case "${COMP_WORDS[@]}" in 
       *"html"*|*"slides"*)
-         local tempopts="basic full"
+         local tempopts="basic ,full "
          ;;
       *"latex"*)
-         local tempopts="basic book article"
+         local tempopts="base ,report ,article "
          ;;
      esac
-     COMPREPLY=( $( compgen -W "$postopts" -- $cur ) )
+     local IFS=$',\t\n'
+     COMPREPLY=( $( compgen -W "$tempopts" -- $cur ) )
      return 0
      ;;
    --config)
@@ -85,6 +122,7 @@ _ipython()
        _getOps $cmd
        local IFS=$'\t\n'
        COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
+       unset IFS
        return 0
        ;;
      *)
@@ -96,13 +134,14 @@ _ipython()
    profile)
      _getOps $cmd
      local IFS=$'\t\n'
-     COMPREPLY=( $( compgen -W "${opts} ${subcmds_prof}" -- $cur ) )
-    return 0
+     COMPREPLY=( $( compgen -W "${opts} ,${subcmds_prof}" -- $cur ) )
+     unset IFS
+     return 0
      ;;
    locate)
      _getOps $cmd
      local IFS=$'\t\n'
-     COMPREPLY=( $( compgen -W "${opts} ${subcmds_loc}" -- $cur ) )
+     COMPREPLY=( $( compgen -W "${opts} ,${subcmds_loc}" -- $cur ) )
      return 0
      ;;
    kernel|console|qtconsole)
@@ -114,7 +153,7 @@ _ipython()
    history)
      _getOps $cmd
      local IFS=$'\t\n'
-     COMPREPLY=( $( compgen -W "${opts} ${subcmds_hist}" -- $cur ) )
+     COMPREPLY=( $( compgen -W "${opts} ,${subcmds_hist}" -- $cur ) )
      return 0
      ;;
    help)
@@ -133,7 +172,9 @@ _ipython()
           ;;
       *)
           _filedir py
-          COMPREPLY+=( $( compgen -W "${subcmds} help"  -- $cur ) )
+          local IFS=$',\t\n'
+          COMPREPLY+=( $( compgen -W "${subcmds} ,help "  -- $cur ) )
+          unset IFS
           return 0
           ;;
   esac
