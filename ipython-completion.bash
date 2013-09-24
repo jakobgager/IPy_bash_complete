@@ -72,7 +72,7 @@ _ipython()
      ;;
    --config)
      _cleanCur
-     COMPREPLY=( $( compgen -f -o filenames -X '.[^./]*' -- $cur) )
+     _filedir
      return 0
      ;;
   esac
@@ -126,15 +126,11 @@ _ipython()
           return 0
           ;;
       *)
-          #_init_completion -s
           _filedir py
           COMPREPLY+=( $( compgen -W "${subcmds} help"  -- $cur ) )
-          #COMPREPLY=( ${COMPREPLY[@]} $( compgen -f -o filenames -X '.[^./]*' -- $cur | grep *.py) )
-          #COMPREPLY=( ${COMPREPLY[@]} $( compgen -W "${dirlist}" -- ${cur}) )
-          #COMPREPLY=( ${COMPREPLY[@]} $( compgen -d -o dirnames -S "/" -X '.[^./]*' -- ${cur}) )
           return 0
           ;;
   esac
 }
 complete -F _ipython -o nospace ipython
-#complete -F _ipython ipython
+#complete -F _ipython -o nospace ipython2.7
