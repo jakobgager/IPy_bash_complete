@@ -4,7 +4,7 @@
 _getOps ()
 {
   local cmd="$1"
-  echo $(ipython $cmd --help | grep -o "^--\?[a-zA-Z][^< ]*" )
+  opts=$((ipython $cmd --help ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
 }
 
 _cleanCur ()
@@ -28,7 +28,7 @@ _ipython()
   local subcmds="locate profile console kernel \
            notebook nbconvert qtconsole history"
 
-  local subcmds_prof="create list"
+  local subcmds_prof=$(echo " create list "|sed -e "s/ /\n/")
   local subcmds_loc="profile"
   local subcmds_hist="trim"
   local mpl_backend="auto gtk inline osx qt qt4 tk wx"
@@ -82,8 +82,9 @@ _ipython()
    nbconvert|notebook)
      case "$cur" in
      -*)
-       local options="$(_getOps $cmd)"
-       COMPREPLY=( $( compgen -W "${options} --help --help-all" -- $cur ) )
+       _getOps $cmd
+       local IFS=$'\t\n'
+       COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
        return 0
        ;;
      *)
@@ -93,23 +94,27 @@ _ipython()
      esac
      ;;
    profile)
-     local options="$(_getOps $cmd)"
-     COMPREPLY=( $( compgen -W "${options} --help --help-all ${subcmds_prof}" -- $cur ) )
+     _getOps $cmd
+     local IFS=$'\t\n'
+     COMPREPLY=( $( compgen -W "${opts} ${subcmds_prof}" -- $cur ) )
     return 0
      ;;
    locate)
-     local options="$(_getOps $cmd)"
-     COMPREPLY=( $( compgen -W "${options} --help --help-all ${subcmds_loc}" -- $cur ) )
+     _getOps $cmd
+     local IFS=$'\t\n'
+     COMPREPLY=( $( compgen -W "${opts} ${subcmds_loc}" -- $cur ) )
      return 0
      ;;
    kernel|console|qtconsole)
-     local options="$(_getOps $cmd)"
-     COMPREPLY=( $( compgen -W "${options} --help --help-all" -- $cur ) )
+     _getOps $cmd
+     local IFS=$'\t\n'
+     COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
      return 0
      ;;
    history)
-     local options="$(_getOps 'history')"
-     COMPREPLY=( $( compgen -W "${options} --help --help-all ${subcmds_hist}" -- $cur ) )
+     _getOps $cmd
+     local IFS=$'\t\n'
+     COMPREPLY=( $( compgen -W "${opts} ${subcmds_hist}" -- $cur ) )
      return 0
      ;;
    help)
@@ -121,8 +126,9 @@ _ipython()
   # basic completion
   case "$cur" in
      -*)
-          local options="$(_getOps)"
-          COMPREPLY=( $( compgen -W "${options} --help --help-all -h" -- $cur ) )
+          _getOps
+          local IFS=$'\t\n'
+          COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
           return 0
           ;;
       *)
