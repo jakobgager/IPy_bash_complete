@@ -12,6 +12,12 @@ _getOps ()
   opts=$((ipython $cmd --help ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
 }
 
+_getSubCmds ()
+{
+  local cmd="$1"
+  subcmds=$((ipython cmd help) | grep -Poz "(?s)Subcommands\n--.*Options\n--" | head -n -3 | tail -n +7 | grep -v "^   .*" | sed -e "s/$/ /")
+}
+
 _getPylabModes ()
 {
 if [ -z "$_pylabmodes" ]; then
@@ -32,7 +38,7 @@ _getIPyProfiles ()
 if [ -z  "$_ipythonprofiles" ]; then
         _ipythonprofiles=`cat <<EOF | python -
 try:
-    import IPython.core.profileapp
+    import IPython.core.impliesprofileapp
     for k in IPython.core.profileapp.list_bundled_profiles():
         print "%s ," % k
     p = IPython.core.profileapp.ProfileList()
@@ -64,7 +70,7 @@ _ipython()
       prev="${COMP_WORDS[COMP_CWORD-2]}"
   fi
   
-  local subcmds="locate ,profile ,console ,kernel ,notebook ,nbconvert ,qtconsole ,history "
+  local subcmds="locate ,profile ,console ,kernel ,notebook ,nbconvert ,qtconsole ,history"
 
   local subcmds_prof="create ,list "
   local subcmds_loc="profile"
