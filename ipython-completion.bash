@@ -1,6 +1,11 @@
 #!/bin/bash
 # complete ipython
 
+#TODO:
+# - parse subcommands
+# - cache options (using location and timestamp?)
+# - refractor code
+
 _getOps ()
 {
   local cmd="$1"
@@ -9,12 +14,12 @@ _getOps ()
 
 _getPylabModes ()
 {
-if [ -z "$__ipython_complete_pylab" ]; then
-    __ipython_complete_pylab=`cat <<EOF | python -
+if [ -z "$_pylabmodes" ]; then
+    _pylabmodes=`cat <<EOF | python -
 try:
     import IPython.core.shellapp as mod;
     for k in mod.InteractiveShellApp.pylab.values:
-        print "%s " % k
+        print "%s ," % k
 except:
     pass
 EOF
@@ -24,15 +29,15 @@ fi
 
 _getIPyProfiles ()
 {
-if [ -z  "$__ipython_complete_profiles" ]; then
-        __ipython_complete_profiles=`cat <<EOF | python -
+if [ -z  "$_ipythonprofiles" ]; then
+        _ipythonprofiles=`cat <<EOF | python -
 try:
     import IPython.core.profileapp
     for k in IPython.core.profileapp.list_bundled_profiles():
-        print "%s " % k
+        print "%s ," % k
     p = IPython.core.profileapp.ProfileList()
     for k in IPython.core.profileapp.list_profiles_in(p.ipython_dir):
-        print "%s " % k
+        print "%s ," % k
 except:
     pass
 EOF
@@ -47,6 +52,7 @@ _cleanCur ()
       cur=''
   fi
 }
+
 _ipython()
 {
   cur=${COMP_WORDS[COMP_CWORD]}
@@ -88,8 +94,10 @@ _ipython()
      ;;
    --matplotlib | --pylab)
      _cleanCur
+     _getPylabModes
      local IFS=$',\t\n'
-     COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
+     COMPREPLY=( $( compgen -W "${_pylabmodes}" -- $cur) )
+     #COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
      unset IFS
      return 0
      ;;
@@ -110,6 +118,15 @@ _ipython()
    --config)
      _cleanCur
      _filedir
+     return 0
+     ;;
+   --profile)
+     _cleanCur
+     _getIPyProfiles
+     local IFS=$',\t\n'
+     COMPREPLY=( $( compgen -W "${_ipythonprofiles}" -- $cur) )
+     #COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
+     unset IFS
      return 0
      ;;
   esac
