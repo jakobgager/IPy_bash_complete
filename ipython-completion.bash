@@ -2,20 +2,14 @@
 # complete ipython
 
 #TODO:
-# - parse subcommands
 # - cache options (using location and timestamp?)
 # - refractor code
 
 _getOps ()
 {
   local cmd="$1"
-  opts=$((ipython $cmd --help ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
-}
-
-_getSubCmds ()
-{
-  local cmd="$1"
-  subcmds=$((ipython cmd help) | grep -Poz "(?s)Subcommands\n--.*Options\n--" | head -n -3 | tail -n +7 | grep -v "^   .*" | sed -e "s/$/ /")
+  local opt="$2"
+  opts=$((ipython $cmd --help$opt ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
 }
 
 _getPylabModes ()
@@ -71,7 +65,6 @@ _ipython()
   fi
   
   local subcmds="locate ,profile ,console ,kernel ,notebook ,nbconvert ,qtconsole ,history"
-
   local subcmds_prof="create ,list "
   local subcmds_loc="profile"
   local subcmds_hist="trim"
@@ -103,7 +96,6 @@ _ipython()
      _getPylabModes
      local IFS=$',\t\n'
      COMPREPLY=( $( compgen -W "${_pylabmodes}" -- $cur) )
-     #COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
      unset IFS
      return 0
      ;;
@@ -131,7 +123,6 @@ _ipython()
      _getIPyProfiles
      local IFS=$',\t\n'
      COMPREPLY=( $( compgen -W "${_ipythonprofiles}" -- $cur) )
-     #COMPREPLY=( $( compgen -W "${mpl_backend}" -- $cur) )
      unset IFS
      return 0
      ;;
@@ -145,7 +136,6 @@ _ipython()
        _getOps $cmd
        local IFS=$'\t\n'
        COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
-       unset IFS
        return 0
        ;;
      *)
@@ -156,7 +146,7 @@ _ipython()
      ;;
    profile)
      _getOps $cmd
-     local IFS=$'\t\n'
+     local IFS=$',\t\n'
      COMPREPLY=( $( compgen -W "${opts} ,${subcmds_prof}" -- $cur ) )
      unset IFS
      return 0
@@ -187,20 +177,23 @@ _ipython()
 
   # basic completion
   case "$cur" in
+     --*)
+          _getOps "" -all
+          local IFS=$'\t\n'
+          COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
+          ;;
      -*)
           _getOps
           local IFS=$'\t\n'
           COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
-          return 0
           ;;
       *)
           _filedir py
           local IFS=$',\t\n'
           COMPREPLY+=( $( compgen -W "${subcmds} ,help "  -- $cur ) )
-          unset IFS
-          return 0
           ;;
   esac
+  return 0
 }
 complete -F _ipython -o nospace ipython
 #complete -F _ipython -o nospace ipython2.7
