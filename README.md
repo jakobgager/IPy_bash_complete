@@ -2,7 +2,7 @@ IPython bash completion
 =======================
 
 Bash complete script to get completion in the terminal.   
-Works only with bash/zsh. (working on a csh/tcsh version as well)
+Works only with bash.
 
 The contained completion routines provide support for completing:
 * subcommands
@@ -13,9 +13,8 @@ The contained completion routines provide support for completing:
 * ipython filename.py completion
 * ipython {notebook, nbconvert} filename.ipynb completion
 
-The script uses the `--help` option to get all possible options.
+The script uses the `--help` and `--help-all` option to get all possible options.
 If this is too slow, it would be possible to add a preprocessing step (not implemented).
-If desired the parsed options can be extended by replacing `--help` with `--help-all` in the *getOps* function.
 
 Current limitations:
 * no logic is implemented to validate combinations
