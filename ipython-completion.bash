@@ -9,7 +9,7 @@ _getOps ()
 {
   local cmd="$1"
   local opt="$2"
-  opts=$((ipython $cmd --help$opt ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
+  opts=$((ipython {$cmd} --help$opt ; echo -e "--help\n--help-all\n-h") | grep -o "^--\?[a-zA-Z][^< ]*" | sed -e "s/[^=]$/& /" )
 }
 
 _getPylabModes ()
@@ -129,26 +129,38 @@ _ipython()
   esac
  
 
+  # subcommand options
+  case "$cur" in
+  --*)
+      if ["$cmd" == "$cur" ]
+      then
+        _getOps "" -all
+        printf 'yes'
+      fi
+      printf ":$cmd:$cur:"
+      #_getOps "$cmd" -all
+      ;;
+  *)
+      _getOps $cmd
+      ;;
+  esac
+  local IFS=$',\t\n'
   case "$cmd" in
    nbconvert|notebook)
      case "$cur" in
      -*)
-       _getOps $cmd
-       local IFS=$'\t\n'
        COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
        return 0
        ;;
      *)
+       unset IFS
        _filedir ipynb
        return 0
        ;;
      esac
      ;;
    profile)
-     _getOps $cmd
-     local IFS=$',\t\n'
      COMPREPLY=( $( compgen -W "${opts} ,${subcmds_prof}" -- $cur ) )
-     unset IFS
      return 0
      ;;
    locate)
@@ -177,14 +189,14 @@ _ipython()
 
   # basic completion
   case "$cur" in
-     --*)
-          _getOps "" -all
-          local IFS=$'\t\n'
-          COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
-          ;;
+     #--*)
+          #_getOps "" -all
+          #local IFS=$'\t\n'
+          #COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
+          #;;
      -*)
-          _getOps
-          local IFS=$'\t\n'
+          #_getOps
+          #local IFS=$'\t\n'
           COMPREPLY=( $( compgen -W "${opts}" -- $cur ) )
           ;;
       *)
